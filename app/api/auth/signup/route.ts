@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { signupSchema } from "@/validations/auth.schema";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { transporter } from "@/lib/mail";
@@ -9,9 +9,22 @@ import generateEmailTemplate from "@/components/emailTemplate";
 export async function POST(req: Request) {
     try {
         const body = await req.json();
+        console.log("Received signup data:", body); // Debug log
 
         // 1️⃣ validate input
-        const data = signupSchema.parse(body);
+        const result = signupSchema.safeParse(body);
+
+        if (!result.success) {
+            return Response.json(
+                { message: result.error.issues[0].message },
+                { status: 400 },
+            );
+        }
+
+        const data = result.data;
+
+        console.log("Validated signup data:", data);
+        // Debug log
 
         // 2️⃣ check existing user
         const existingUser = await prisma.user.findUnique({
@@ -63,6 +76,7 @@ export async function POST(req: Request) {
             message: "Signup successful. Check email.",
         });
     } catch (error) {
+        console.error("Signup error:", error);
         return NextResponse.json(
             { error: "Signup failed" },
             { status: 500 },

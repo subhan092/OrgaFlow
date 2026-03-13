@@ -14,6 +14,9 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import Image from "next/image";
+import axios from "axios";
+import toast from "react-hot-toast"
+import { set } from "zod";
 
 export default function SignupForm() {
     const [name, setName] = useState("");
@@ -21,24 +24,43 @@ export default function SignupForm() {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
-    const createAccount = async () => {
-        try {
-            const response = await axios.post("/api/auth/signup", {
-                name,
-                email,
-                password,
-            });
 
-            console.log("Signup successful:", response.data);
-            // Optionally, redirect user or show a success message
-        } catch (error: any) {
-            console.error(
-                "Signup failed:",
-                error.response?.data || error.message,
-            );
-            // Optionally, show error notification
-        }
-    };
+
+const createAccount = async () => {
+
+  const toastId = toast.loading("Creating account...")
+
+  try {
+    const response = await axios.post("/api/auth/signup", {
+      name,
+      email,
+      password,
+    })
+
+    toast.success("Account created successfully!", {
+      id: toastId,
+    })
+
+    setName("")
+    setEmail("")
+    setPassword("")
+    setShowPassword(false)
+
+    console.log("Signup successful:", response.data)
+
+  } catch (error: any) {
+
+    const message =
+      error?.response?.data?.message ||
+      "Signup failed. Please try again."
+
+    toast.error(message, {
+      id: toastId,
+    })
+
+    console.error("Signup failed:", message)
+  }
+}
 
     const isDisabled = !name || !email || !password;
 
@@ -48,8 +70,8 @@ export default function SignupForm() {
                 <Image
                     src="/logo.png"
                     alt="Logo"
-                    width={220}
-                    height={220}
+                    width={250}
+                    height={300}
                     className="rounded-md"
                 />
 
@@ -70,6 +92,11 @@ export default function SignupForm() {
                         id="name"
                         placeholder="John Doe"
                         value={name}
+                        className=" focus:outline-none 
+                                    focus:border-none       
+                                    focus:ring              
+                                    focus:ring-primary        
+                                    focus:ring-offset-1 "
                         onChange={(e) => setName(e.target.value)}
                     />
                 </div>
@@ -81,8 +108,9 @@ export default function SignupForm() {
                         id="email"
                         type="email"
                         placeholder="john@email.com"
-                        className=" focus:outline-none        
-                                    focus:ring-2              
+                        className=" focus:outline-none 
+                                    focus:border-none       
+                                    focus:ring              
                                     focus:ring-primary        
                                     focus:ring-offset-1 "
                         value={email}
@@ -99,6 +127,11 @@ export default function SignupForm() {
                             type={showPassword ? "text" : "password"}
                             placeholder="Create password"
                             value={password}
+                            className=" focus:outline-none 
+                                    focus:border-none       
+                                    focus:ring              
+                                    focus:ring-primary        
+                                    focus:ring-offset-1 "
                             onChange={(e) => setPassword(e.target.value)}
                         />
 
@@ -116,7 +149,7 @@ export default function SignupForm() {
 
                 {/* BUTTON */}
                 <Button
-                    className="w-full bg-primary text-white shadow-2xl py-5"
+                    className="w-full bg-primary text-white shadow-2xl py-5 hover:cursor-pointer"
                     disabled={isDisabled}
                     onClick={createAccount}
                 >
